@@ -1,0 +1,7 @@
+{
+  "sound": {
+    "category": "master",
+    "subtitle": "wasteddeath.subtitle.sound",
+    "sounds": ["wasteddeath:wasted"]
+  }
+}
