@@ -1,12 +1,12 @@
 modLoader="javafml"
 loaderVersion="[32,)"
+
 [[mods]]
 modId="wasteddeath"
-version="1.0"
+version="1.2"
 displayName="Wasted Death"
 authors="Redstoneguy129"
 description="Wasted screen from GTA on death."
-
 
 [[dependencies.wasteddeath]]
     modId="forge"

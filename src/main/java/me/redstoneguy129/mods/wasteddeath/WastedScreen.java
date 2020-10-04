@@ -1,31 +1,22 @@
 package me.redstoneguy129.mods.wasteddeath;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
+import me.redstoneguy129.mods.wasteddeath.network.GetServerTextMessage;
+import me.redstoneguy129.mods.wasteddeath.network.Networking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.recipebook.FurnaceRecipeGui;
 import net.minecraft.client.gui.screen.DeathScreen;
-import net.minecraft.client.gui.screen.EnchantmentScreen;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.CraftingScreen;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnchantmentNameParts;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.*;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.util.text.ITextProperties;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.fml.network.NetworkDirection;
 import org.lwjgl.opengl.GL11;
 
-import java.util.Random;
-
-@OnlyIn(Dist.CLIENT)
 public class WastedScreen extends Screen {
-    private final Random rand = new Random();
-    private final String[] namePartsArray = new String[]{"Wasted", "Died", "Not Needed"};
+    public static String randText;
     private static final ResourceLocation PRICEDOWN_FONT = new ResourceLocation("wasteddeath", "pricedown");
     private static final ResourceLocation WASTED_TEXTURE = new ResourceLocation("wasteddeath", "textures/gui/wasted.png");
     private static final Style PRICEDOWN_STYLE = Style.EMPTY.setFontId(PRICEDOWN_FONT);
@@ -36,24 +27,21 @@ public class WastedScreen extends Screen {
         super(new TranslationTextComponent("wasteddeath.screen"));
         this.deathScreen = deathScreen;
         assert Minecraft.getInstance().player != null;
-        Minecraft.getInstance().player.playSound(WastedDeath.clientGUI.sound, 10F, 1F);
+        Minecraft.getInstance().player.playSound(WastedSounds.sound, 10F, 1F);
+        Networking.INSTANCE.sendTo(new GetServerTextMessage(), Minecraft.getInstance().player.connection.getNetworkManager(), NetworkDirection.PLAY_TO_SERVER);
     }
 
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         GL11.glEnable(GL11.GL_BLEND);
         assert this.minecraft != null;
-        int xSize = 256;
+        int xSize = 128;
         int x = (this.width - xSize) / 2;
-        int ySize = 46;
+        int ySize = 23;
         int y = (this.height - ySize) / 2;
         this.minecraft.getTextureManager().bindTexture(WASTED_TEXTURE);
         blit(matrixStack, x, y, 256, 256, xSize, ySize);
-        matrixStack.push();
-        String s = "WASTED";
-        //matrixStack.scale(2F, 2F, 2F);
-        this.font.func_238418_a_(getPricedown(this.font, s), x + 112, y + 25,86 - this.font.getStringWidth(s), 0xd40e00);
-        matrixStack.pop();
+        if(randText != null) this.font.func_238418_a_(getPricedown(this.font, randText), x+64-(this.font.getStringWidth(randText)/2), y+7,86 - this.font.getStringWidth(randText), 0xd40e00);
         if(counter == 100) {
             this.minecraft.displayGuiScreen(deathScreen);
         }

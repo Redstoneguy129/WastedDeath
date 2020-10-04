@@ -1,59 +1,40 @@
 package me.redstoneguy129.mods.wasteddeath;
 
-import net.java.games.input.Keyboard;
-import net.minecraft.client.KeyboardListener;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.DeathScreen;
-import net.minecraft.client.gui.screen.MainMenuScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.CraftingScreen;
+import me.redstoneguy129.mods.wasteddeath.network.Networking;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.GuiOpenEvent;
-import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
 
-import java.sql.Timestamp;
+import java.util.Random;
 
 @Mod("wasteddeath")
 public class WastedDeath {
+    public static Random random = new Random();
+
     public WastedDeath() {
-        MinecraftForge.EVENT_BUS.register(new clientGUI());
+        ModLoadingContext.get().registerConfig(
+                ModConfig.Type.SERVER,
+                WastedConfig.SPEC
+        );
+        WastedConfig.init(FMLPaths.CONFIGDIR.get().resolve("wasteddeath" + "-server.toml"));
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+            MinecraftForge.EVENT_BUS.register(new GUIHandler());
+        });
     }
 
-    @OnlyIn(Dist.CLIENT)
-    @Mod.EventBusSubscriber(modid = "wasteddeath")
-    static
-    class clientGUI {
-
-        static ResourceLocation location = new ResourceLocation("wasteddeath", "sound");
-        public static SoundEvent sound = new SoundEvent(location);
-
-        @SubscribeEvent
-        public void registerSounds(RegistryEvent.Register<SoundEvent> event) {
-            event.getRegistry().register(sound);
-        }
-
-        private WastedScreen screen;
-
-        @SubscribeEvent
-        public void onDeathGUI(GuiOpenEvent event) {
-            if(event.getGui() instanceof DeathScreen) {
-                if(screen == null) {
-                    screen = new WastedScreen((DeathScreen) event.getGui());
-                    event.setGui(screen);
-                } else {
-                    if(screen.counter > 100) {
-                        screen = null;
-                    }
-                }
-            }
-        }
+    private void setup(final FMLCommonSetupEvent event) {
+        Networking.registerMessages();
     }
+
 
 }
